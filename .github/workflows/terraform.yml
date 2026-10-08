@@ -31,5 +31,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
+        env:
+          TF_VAR_billing_email: ${{ secrets.BILLING_EMAIL }}
         run: terraform plan
         working-directory: ./terraform
