@@ -19,6 +19,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Authenticate to Cloud Provider
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+          role-to-assume: arn:aws:iam::504676328412:oidc-provider/githubusercontent.com
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
@@ -30,12 +36,12 @@ jobs:
         run: terraform fmt -check
         working-directory: ./terraform
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+ #     - name: Configure AWS Credentials
+ #       uses: aws-actions/configure-aws-credentials@v4
+ #       with:
+ #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+ #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+ #         aws-region: us-east-1
 
       - name: Terraform Plan
         env:
