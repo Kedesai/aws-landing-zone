@@ -19,6 +19,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Debug OIDC Token Claims
+        run: |
+          # Request a raw token from GitHub's internal action service
+          JWT=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          # Decode the token payload (the middle section of the JWT)
+          echo "Your actual GitHub OIDC Claims are:"
+          echo "$JWT" | cut -d'.' -f2 | base64 --decode | jq
+
+
       - name: Authenticate to Cloud Provider
         uses: aws-actions/configure-aws-credentials@v4 
         with:
