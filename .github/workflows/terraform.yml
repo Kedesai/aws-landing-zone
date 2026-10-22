@@ -27,6 +27,19 @@ jobs:
           echo "Your actual GitHub OIDC Claims are:"
           echo "$JWT" | cut -d'.' -f2 | base64 --decode | jq
 
+      - name: Validate AWS Role ARN is configured
+        run: |
+          ROLE="${{ vars.AWS_ROLE_ARN || secrets.AWS_ROLE_ARN }}"
+          if [ -z "$ROLE" ]; then
+            echo "::error::AWS_ROLE_ARN is not set. Add it under Settings → Secrets and variables → Actions. Expected format: arn:aws:iam::504676328412:role/GithubOIDC"
+            exit 1
+          fi
+          if [[ ! "$ROLE" =~ ^arn:aws:iam::[0-9]{12}:role/.+$ ]]; then
+            echo "::error::AWS_ROLE_ARN is malformed: '$ROLE'. Expected: arn:aws:iam::504676328412:role/<role-name>"
+            exit 1
+          fi
+          echo "Role ARN is configured: $ROLE"
+
 
       - name: Authenticate to Cloud Provider
         uses: aws-actions/configure-aws-credentials@v4 
