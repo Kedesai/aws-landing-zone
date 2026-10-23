@@ -26,51 +26,12 @@ jobs:
           # Decode the token payload (the middle section of the JWT)
           echo "Your actual GitHub OIDC Claims are:"
           echo "$JWT" | cut -d'.' -f2 | base64 --decode | jq
-
-      - name: Validate and Normalize AWS Role ARN
-        id: validate-arn
-        run: |
-          # 1. Get the raw value
-          RAW_ROLE="${{ secrets.AWS_ROLE_ARN }}"
-
-          # 2. Trim leading/trailing whitespace and newlines
-          CLEAN_ROLE="$(echo "$RAW_ROLE" | xargs)"
-
-          # 3. Print diagnostics to the log
-          echo "Raw length (with hidden chars): ${#RAW_ROLE}"
-          echo "Clean length: ${#CLEAN_ROLE}"
-          echo "Delimited value: [$CLEAN_ROLE]"
-
-          # 4. Fail if it's empty after trimming
-          if [ -z "$CLEAN_ROLE" ]; then
-            echo "::error::AWS_ROLE_ARN is empty after trimming."
-            exit 1
-          fi
-
-          # 5. Validate the format (adjusted for your role name)
-          if [[ ! "$CLEAN_ROLE" =~ ^arn:aws:iam::504676543678:role/GithubOIDC$ ]]; then
-            echo "::error::AWS_ROLE_ARN is malformed. Expected: arn:aws:iam::504676543678:role/GithubOIDC"
-            exit 1
-          fi
-
-          # 6. Export the clean value for the next step
-          echo "CLEAN_ROLE=$CLEAN_ROLE" >> $GITHUB_OUTPUT
-          echo "Role ARN is valid and normalized."
-
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+          
+      - name: Authenticate to Cloud Provider
+        uses: aws-actions/configure-aws-credentials@v4 
         with:
-          role-to-assume: ${{ steps.validate-arn.outputs.CLEAN_ROLE }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
-          audience: sts.amazonaws.com
-          output-env-credentials: true
-
-     # - name: Authenticate to Cloud Provider
-     #   uses: aws-actions/configure-aws-credentials@v4 
-     #   with:
-     #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-     #     aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
